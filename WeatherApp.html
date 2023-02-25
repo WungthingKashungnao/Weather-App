@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="p-3 bg-cyan-200">
+    <div class="max-w-[1320px] mx-auto">
+      <h1 class="text-[30px] font-bold">Simple Weather App</h1>
+      <form class="mt-2" id="formdata">
+        <input
+          id="inpt"
+          type="text"
+          placeholder="Enter city name"
+          class="border-2 border-black text-[20px]"
+          name="locationInpt"
+        />
+        <button
+          id="btn"
+          class="bg-[yellow] px-[20px] py-[5px] rounded-[10px] text-[20px]"
+        >
+          Submit
+        </button>
+      </form>
+      <!-- display area start-->
+      <div
+        id="info"
+        class="mt-3 grid lg:grid-cols-4 md:grid-cols-3 gap-[20px]"
+      ></div>
+      <!-- display area end-->
+    </div>
+  </body>
+  <script>
+      let loc = [];
+      let img = `https://s3-us-west-2.amazonaws.com/s.cdpn.io/162656/`;
+      let info = document.getElementById("info")
+
+      //function to get the data from api
+      let getData = async (e) => {
+      let btn = document.getElementById("btn");
+      let inpt = document.getElementById("inpt");
+      let city = inpt.value.toLowerCase();
+      var oldplace = JSON.parse(localStorage.getItem("places"));
+     
+      if (oldplace === null || oldplace === undefined || oldplace === '') {
+            var s = [city];
+            localStorage.setItem(
+            "places",
+            JSON.stringify(s)
+          );    
+     
+          } 
+  
+          else {
+            if(!oldplace.includes(city)){
+             var s = [...oldplace, city];
+             localStorage.setItem(
+            "places",
+            JSON.stringify(s)
+          );    
+     
+            }
+            else{
+              alert("Location "+city+' already added')
+            }
+           
+          }
+         
+          showAllData();
+        
+      e.preventDefault();
+    };
+
+ function showAllData(){   
+    // // storing data on browser local storage and load
+    var temp='';
+    if(JSON.parse(localStorage.getItem("places") != null) ){
+      let localData = JSON.parse(localStorage.getItem("places"));
+      localData.forEach((element,i) => {
+        console.log(i)
+      let api = `https://api.openweathermap.org/data/2.5/weather?q=${element}&appid=4d8fb5b93d4af21d66a2948710284366&units=metric`;
+      fetch(api)
+        .then((data) => data.json())
+        .then((fdata) => {
+          let old = info.innerHTML;
+          temp+= `
+            <div class="display shadow border-2 border-black text-center bg-white py-2">
+                <button class='bg-[red] text-white p-2 rounded-[50%] font-bold text-[20px]' id='delete' onclick="removeBlock(this,${i})">x</button>
+                    <div>
+                        <h3 id="city" class='text-[20px] font-bold'>${
+                          fdata.name
+                        }</h3>
+                        <span class='bg-[yellow] p-2 m-2 inline-block text-[20px] font-bold'>${
+                          fdata.sys.country
+                        }</span>
+                    </div>
+                    <h2 id="temp" class='text-[20px] font-bold'>${
+                      fdata.main.temp
+                    }&#8451;</h2>
+                    <img id="img" src='${
+                      img + fdata.weather[0].icon
+                    }.svg' alt="image" class="w-[100%] h-[100px] border-1 border-black">
+                    <h4 id="des" class='text-[20px] font-bold'>${
+                      fdata.weather[0].description
+                    }</h4>
+                </div>
+            `;
+          info.innerHTML =temp;
+        });   
+        // info.innerHTML = old + temp;
+    });
+    }
+  }
+  showAllData()
+    
+    // remove individaul element
+    let removeBlock = (c,i) => {
+      let localData = JSON.parse(localStorage.getItem("places")); //Array
+      var finalArray=localData.filter((v)=>v!=localData[i])
+    
+      c.parentElement.remove();
+      localStorage.setItem("places",JSON.stringify(finalArray))
+      showAllData();
+    };
+
+    // btn.addEventListener("click", getData);
+
+    const formdata = document.getElementById("formdata");
+    formdata.addEventListener("submit", getData);
+  </script>
+</html>
